@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@coreui/vue": "^5.4.1",
+    "@vercel/speed-insights": "^1.1.0",
     "firebase": "^11.0.2",
     "pubnub": "^8.3.1",
     "vite-plugin-vuetify": "^2.0.4",
