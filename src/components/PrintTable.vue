@@ -88,68 +88,51 @@ onMounted(async () => {
 // PubNub configuratie en berichten afhandelen
 pubnub.subscribe({ channels: ['jobs'] });
 
-// Firebase: Referentie naar het document in de 'global' collectie
-const printStatusRef = doc(db, "global", "printStatus");
 pubnub.addListener({
     message: async (event) => {
         const message = event.message;
         const now = new Date();
         console.log("Ontvangen bericht:", message);
 
-        if (message === 'on') {
-            // Lees de globale printstatus vanuit Firestore
-            const docSnap = await getDoc(printStatusRef);
-            if (docSnap.exists()) {
-                const printStatus = docSnap.data().isPrinting;
+        if (message === 'on' && !isPrinting.value) {
+            // Als er geen print bezig is, start een nieuwe print
+            isPrinting.value = true;
 
-                // Als er al een print bezig is, doe dan niets
-                if (printStatus) {
-                    console.log("Er is al een print bezig.");
-                    return; // Als printstatus 'true' is, wordt geen nieuwe print gestart
-                }
+            // Stel een standaardprinter in
+            const defaultPrinter = "Printer1"; // Standaardprinter voor 'on' berichten
 
-                // Als er geen print bezig is, start dan een print
-                console.log("Print wordt gestart...");
-                
-                // Update de globale printstatus naar 'true' om aan te geven dat er een print bezig is
-                await updateDoc(printStatusRef, {
-                    isPrinting: true
-                });
+            // Voeg een nieuw print-item toe
+            const newItem = {
+                namefirst: 'Unknown',
+                namelast: 'Unknown',
+                printer: defaultPrinter,  // Gebruik de standaardprinter
+                email: 'unknown@example.com',
+                timestart: now.toLocaleTimeString(),
+                timeend: null,
+                timeprint: null,
+                date: now.toLocaleDateString(),
+                status: 'Active',
+            };
 
-                // Voeg een nieuw print-item toe in Firestore
-                const newItem = {
-                    namefirst: 'Unknown',
-                    namelast: 'Unknown',
-                    printer: 'Printer1',
-                    email: 'unknown@example.com',
-                    timestart: now.toLocaleTimeString(),
-                    timeend: null,
-                    timeprint: null,
-                    date: now.toLocaleDateString(),
-                    status: 'Active',
-                };
+            items.value.push(newItem);
 
-                try {
-                    const docRef = await addDoc(collection(db, "prints"), newItem);
-                    console.log("Document geschreven met ID:", docRef.id);
-                    currentPrintId.value = docRef.id;
-                } catch (error) {
-                    console.error("Error bij het toevoegen van document:", error);
-                }
-            } else {
-                console.log("Geen globale printstatus gevonden.");
+            try {
+                const docRef = await addDoc(collection(db, "prints"), newItem);
+                console.log("Document geschreven met ID:", docRef.id);
+                // Sla het ID van de nieuwe print op om het later bij te werken
+                currentPrintId.value = docRef.id;
+            } catch (error) {
+                console.error("Error bij het toevoegen van document:", error);
             }
-        } else if (message === 'off') {
-            // Bij het ontvangen van een 'off' bericht, beëindig de print en werk de status bij
+        } else if (message === 'off' && isPrinting.value && currentPrintId.value) {
+            // Als het 'off' bericht wordt ontvangen, beëindig de print en werk het juiste item bij
             const lastItem = items.value.find(item => item.id === currentPrintId.value && item.status === 'Active' && !item.timeend);
 
             if (lastItem) {
-                const now = new Date();
                 lastItem.timeend = now.toLocaleTimeString();
 
                 const startTime = new Date(`1970-01-01T${lastItem.timestart}`);
                 const endTime = new Date(`1970-01-01T${lastItem.timeend}`);
-
                 const diffMs = endTime - startTime;
                 const diffMinutes = Math.floor(diffMs / 60000);
                 const diffHours = Math.floor(diffMinutes / 60);
@@ -165,11 +148,6 @@ pubnub.addListener({
                         status: lastItem.status,
                     });
                     console.log('Document geüpdatet met ID:', lastItem.id);
-
-                    // Reset de globale printstatus naar 'false'
-                    await updateDoc(printStatusRef, {
-                        isPrinting: false
-                    });
                 } catch (error) {
                     console.error("Error bij het updaten van document:", error);
                 }
@@ -181,8 +159,6 @@ pubnub.addListener({
         }
     },
 });
-
-
 </script>
 
 <style scoped>
