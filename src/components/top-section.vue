@@ -29,4 +29,13 @@ export default {
     display: flex;
     align-items: center;
 }
+
+@media (max-width: 768px) {
+    .upperLeftText>*{
+    height: 50px;
+    margin-left: 0px;
+    display: flex;
+    align-items: center;
+}
+}
 </style>

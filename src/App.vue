@@ -41,6 +41,11 @@ html::-webkit-scrollbar {
 .v-input__details {
   display: none !important;
 }
+@media (max-width: 768px) {
+  .v-text-field>input {
+    text-align: center;
+  }
+}
 </style>
 
 <style scoped>
@@ -72,21 +77,16 @@ html::-webkit-scrollbar {
   height: 110px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;  /* Centraal uitlijnen van de inhoud */
+  justify-content: center;  /* Centraal uitlijnen van de inhoud */
   align-items: center;      /* Verticaal centreren */
   position: sticky;
   top: 0;
   background-color: white;
   z-index: 10;
-  padding: 0 20px;          /* Optioneel: wat padding aan de zijkanten */
+  padding: 0 0px;          /* Optioneel: wat padding aan de zijkanten */
   box-sizing: border-box;   /* Zorgt ervoor dat padding wordt meegenomen in de breedte */
   margin-bottom: 10px;
 }
 
-.v-text-field {
-  width: 100%;
-  max-width: 500px;  /* Beperk de maximale breedte van de zoekbalk */
-  text-align: center
-}
 }
 </style>
