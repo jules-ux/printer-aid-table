@@ -9,18 +9,12 @@
     </v-data-table>
 </template>
 
-<script>
-export default {
-    name: 'Tabel',
-};
-</script>
-
 <script setup>
 import { ref, onMounted } from 'vue';
 import PubNub from 'pubnub';
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, addDoc, getDocs, updateDoc, doc, onSnapshot } from "firebase/firestore";
-
+import { v4 as uuidv4 } from 'uuid'; // Voeg de UUID-bibliotheek toe
 
 // Firebase-configuratie
 const firebaseConfig = {
@@ -121,12 +115,9 @@ pubnub.addListener({
                 status: 'Active',
             };
 
-            items.value.push(newItem);
-
             try {
                 const docRef = await addDoc(collection(db, "prints"), newItem);
                 console.log("Document geschreven met ID:", docRef.id);
-                // Sla het ID van de nieuwe print op om het later bij te werken
                 currentPrintId.value = docRef.id;
             } catch (error) {
                 console.error("Error bij het toevoegen van document:", error);
@@ -140,6 +131,7 @@ pubnub.addListener({
 
                 const startTime = new Date(`1970-01-01T${lastItem.timestart}`);
                 const endTime = new Date(`1970-01-01T${lastItem.timeend}`);
+
                 const diffMs = endTime - startTime;
                 const diffMinutes = Math.floor(diffMs / 60000);
                 const diffHours = Math.floor(diffMinutes / 60);
@@ -168,7 +160,7 @@ pubnub.addListener({
 });
 </script>
 
-<style>
+<style scoped>
 html,
 body {
     margin: 0px;
@@ -176,19 +168,19 @@ body {
     height: 100%;
 }
 
-.pa-2{
+.pa-2 {
     margin-inline: 12px;
 }
 
-.v-data-table-footer{
+.v-data-table-footer {
     margin-inline: 12px;
 }
 
-thead{
+thead {
     background-color: #f9fafc;
 }
 
-tr>*>*{
+tr>*>* {
     display: flex;
     justify-content: left;
     font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
@@ -197,15 +189,14 @@ tr>*>*{
     color: #5a5b5c
 }
 
-.v-data-table__tr>*>*>*{
+.v-data-table__tr>*>*>* {
     display: flex;
     flex-direction: row;
     justify-content: left;
 }
 
-.v-data-table__td{
+.v-data-table__td {
     color: black;
     font-weight: 200;
 }
-
 </style>
