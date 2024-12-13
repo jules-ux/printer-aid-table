@@ -87,16 +87,40 @@ onMounted(async () => {
 
 // PubNub configuratie en berichten afhandelen
 pubnub.subscribe({ channels: ['jobs'] });
-
 pubnub.addListener({
     message: async (event) => {
         const message = event.message;
         const now = new Date();
-        console.log("Ontvangen bericht:", message);
 
         if (message === 'on' && !isPrinting.value) {
             // Als er geen print bezig is, start een nieuwe print
             isPrinting.value = true;
+
+            // Verwijder alle oude actieve prints (indien ze bestaan)
+            const activePrints = items.value.filter(item => item.status === 'Active');
+
+            // Als er meer dan 1 actieve print is, verwijder dan de overtollige
+            if (activePrints.length > 1) {
+                for (let i = 1; i < activePrints.length; i++) {
+                    const activePrint = activePrints[i];
+
+                    // Verwijder de overtollige actieve print uit de items array
+                    const itemIndex = items.value.indexOf(activePrint);
+                    if (itemIndex > -1) {
+                        items.value.splice(itemIndex, 1); // Verwijder de print uit de lijst
+                    }
+
+                    // Verwijder de overtollige actieve print ook uit Firestore
+                    try {
+                        const docRef = doc(db, "prints", activePrint.id);
+                        await updateDoc(docRef, {
+                            status: 'Inactive', // Werk de status bij naar 'Inactive'
+                        });
+                    } catch (error) {
+                        console.error("Error bij het bijwerken van document:", error);
+                    }
+                }
+            }
 
             // Stel een standaardprinter in
             const defaultPrinter = "Printer1"; // Standaardprinter voor 'on' berichten
@@ -118,7 +142,6 @@ pubnub.addListener({
 
             try {
                 const docRef = await addDoc(collection(db, "prints"), newItem);
-                console.log("Document geschreven met ID:", docRef.id);
                 // Sla het ID van de nieuwe print op om het later bij te werken
                 currentPrintId.value = docRef.id;
             } catch (error) {
