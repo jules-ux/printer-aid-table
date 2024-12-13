@@ -1,17 +1,19 @@
 <template>
-  <v-app>
-    <!-- Voeg eventueel een navigation bar toe of andere layout elementen hier -->
-    <v-container>
-      <print-table /> <!-- Laad de PrintTable-component -->
-    </v-container>
-  </v-app>
+  <div>
+    <Top />
+    <Tabel />
+  </div>
 </template>
 
-<script setup>
-// Importeer de PrintTable-component die je hebt gemaakt
-import PrintTable from './components/PrintTable.vue'
-</script>
+<script>
+import Top from './components/top-section.vue';
+import Tabel from './components/PrintTable.vue';
 
-<style>
-/* Je kunt hier globale stijlen toevoegen */
-</style>
+export default {
+  name: 'ParentComponent',
+  components: {
+    Top,
+    Tabel,
+  },
+};
+</script>

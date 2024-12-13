@@ -1,24 +1,30 @@
 <template>
     <v-data-table :headers="headers" :items="items" :search="search" item-value="name" class="main">
-        <template v-slot:top>
-            <v-text-field v-model="search" class="pa-2" label="Search"></v-text-field>
-        </template>
+        <!-- <template v-slot:top>
+          <v-text-field v-model="search" class="pa-2" label="Search"></v-text-field>
+        </template> -->
 
         <!-- Status kolom met dynamische kleur en icoon -->
-        <template v-slot:item.status="{ item }">
-            <v-chip :color="item.status === 'Active print' ? 'green' : 'red'" label dark >
-                <v-icon>{{ item.status === 'Active print' ? 'mdi-check-circle' : 'mdi-close-circle' }}</v-icon>
+        <template v-slot:item.status="{ item }" class="pa-3">
+            <v-chip :color="item.status === 'Active' ? 'green' : 'red'" label dark>
                 {{ item.status }}
             </v-chip>
         </template>
     </v-data-table>
 </template>
 
+<script>
+export default {
+    name: 'Tabel',
+};
+</script>
+
 <script setup>
 import { ref, onMounted } from 'vue';
 import PubNub from 'pubnub';
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, addDoc, getDocs, updateDoc, doc, onSnapshot } from "firebase/firestore";
+
 
 // Firebase-configuratie
 const firebaseConfig = {
@@ -40,14 +46,14 @@ const db = getFirestore(app);
 const search = ref('');
 const headers = ref([
     { title: 'First Name', align: 'start', key: 'namefirst' },
-    { title: 'Last Name', align: 'end', key: 'namelast' },
-    { title: 'Printer', align: 'end', key: 'printer' },
-    { title: 'Email', align: 'end', key: 'email' },
-    { title: 'Start Time', align: 'end', key: 'timestart' },
-    { title: 'End Time', align: 'end', key: 'timeend' },
-    { title: 'Print Time', align: 'end', key: 'timeprint' },
-    { title: 'Date', align: 'end', key: 'date' },
-    { title: 'Status', align: 'end', key: 'status' },
+    { title: 'Last Name', align: 'start', key: 'namelast' },
+    { title: 'Printer', align: 'start', key: 'printer' },
+    { title: 'Email', align: 'start', key: 'email' },
+    { title: 'Start Time', align: 'start', key: 'timestart' },
+    { title: 'End Time', align: 'start', key: 'timeend' },
+    { title: 'Print Time', align: 'start', key: 'timeprint' },
+    { title: 'Date', align: 'start', key: 'date' },
+    { title: 'Status', align: 'start', key: 'status' },
 ]);
 const items = ref([]);
 
@@ -116,7 +122,7 @@ pubnub.addListener({
                 timeend: null,
                 timeprint: null,
                 date: now.toLocaleDateString(),
-                status: 'Active print',
+                status: 'Active',
             };
 
             items.value.push(newItem);
@@ -131,7 +137,7 @@ pubnub.addListener({
             }
         } else if (message === 'off' && isPrinting.value && currentPrintId.value) {
             // Als het 'off' bericht wordt ontvangen, beëindig de print en werk het juiste item bij
-            const lastItem = items.value.find(item => item.id === currentPrintId.value && item.status === 'Active print' && !item.timeend);
+            const lastItem = items.value.find(item => item.id === currentPrintId.value && item.status === 'Active' && !item.timeend);
 
             if (lastItem) {
                 lastItem.timeend = now.toLocaleTimeString();
@@ -175,6 +181,40 @@ body {
     height: 100%;
 }
 
+.pa-2{
+    margin-inline: 12px;
+}
 
+.v-data-table-footer{
+    margin-inline: 12px;
+}
+
+thead{
+    background-color: #f9fafc;
+}
+
+tr>*>*{
+    display: flex;
+    justify-content: left;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    font-weight: 900;
+    font-size: 1.02rem;
+    color: #5a5b5c
+}
+
+.v-table__wrapper{
+    margin-top: 10px;
+}
+
+.v-data-table__tr>*>*>*{
+    display: flex;
+    flex-direction: row;
+    justify-content: left;
+}
+
+.v-data-table__td{
+    color: black;
+    font-weight: 200;
+}
 
 </style>
