@@ -14,7 +14,6 @@ import { ref, onMounted } from 'vue';
 import PubNub from 'pubnub';
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, addDoc, getDocs, updateDoc, doc, onSnapshot } from "firebase/firestore";
-import { v4 as uuidv4 } from 'uuid'; // Voeg de UUID-bibliotheek toe
 
 // Firebase-configuratie
 const firebaseConfig = {
@@ -91,7 +90,6 @@ pubnub.subscribe({ channels: ['jobs'] });
 
 // Firebase: Referentie naar het document in de 'global' collectie
 const printStatusRef = doc(db, "global", "printStatus");
-
 pubnub.addListener({
     message: async (event) => {
         const message = event.message;
@@ -107,7 +105,7 @@ pubnub.addListener({
                 // Als er al een print bezig is, doe dan niets
                 if (printStatus) {
                     console.log("Er is al een print bezig.");
-                    return;
+                    return; // Als printstatus 'true' is, wordt geen nieuwe print gestart
                 }
 
                 // Als er geen print bezig is, start dan een print
@@ -183,6 +181,7 @@ pubnub.addListener({
         }
     },
 });
+
 
 </script>
 
