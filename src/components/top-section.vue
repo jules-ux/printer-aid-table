@@ -1,8 +1,10 @@
 <template>
     <div class="upperLeftText">
-        <div class="funnel-sans">Prints</div>
+        <div class="funnel-sans">MakerMonitor </div>
     </div>
 </template>
+
+
 
 <script>
 export default {
@@ -17,12 +19,14 @@ export default {
     font-family: "Funnel Sans", sans-serif;
     font-optical-sizing: auto;
     font-weight: 600;
-    font-size: 1.8rem;
+    font-size: 1.6rem;
 
 }
 
-.upperLeftText{
-    margin-top: 1%;
+.upperLeftText>*{
+    height: 50px;
     margin-left: 20px;
+    display: flex;
+    align-items: center;
 }
 </style>

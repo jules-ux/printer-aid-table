@@ -1,9 +1,5 @@
 <template>
     <v-data-table :headers="headers" :items="items" :search="search" item-value="name" class="main">
-        <!-- <template v-slot:top>
-          <v-text-field v-model="search" class="pa-2" label="Search"></v-text-field>
-        </template> -->
-
         <!-- Status kolom met dynamische kleur en icoon -->
         <template v-slot:item.status="{ item }" class="pa-3">
             <v-chip :color="item.status === 'Active' ? 'green' : 'red'" label dark>
@@ -177,7 +173,6 @@ html,
 body {
     margin: 0px;
     padding: 0;
-    overflow: hidden;
     height: 100%;
 }
 
@@ -200,10 +195,6 @@ tr>*>*{
     font-weight: 900;
     font-size: 1.02rem;
     color: #5a5b5c
-}
-
-.v-table__wrapper{
-    margin-top: 10px;
 }
 
 .v-data-table__tr>*>*>*{
