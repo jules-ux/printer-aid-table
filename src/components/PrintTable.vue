@@ -87,6 +87,36 @@ onMounted(async () => {
 
 // PubNub configuratie en berichten afhandelen
 pubnub.subscribe({ channels: ['jobs'] });
+async function cleanupActivePrints() {
+    // Haal alle actieve prints op uit de database
+    const activePrintsSnapshot = await getDocs(query(collection(db, "prints"), where("status", "==", "Active")));
+    
+    // Als er meer dan 1 actieve print is, verwijder de extra prints
+    if (activePrintsSnapshot.size > 1) {
+        let counter = 0;
+        activePrintsSnapshot.forEach(async (docSnap) => {
+            if (counter > 0) { // De eerste actieve print bewaren
+                const activePrint = docSnap.data();
+                
+                // Werk de status bij naar 'Inactive' voor de overtollige print
+                try {
+                    const docRef = doc(db, "prints", docSnap.id);
+                    await updateDoc(docRef, {
+                        status: 'Inactive', // Maak de print inactief
+                    });
+                } catch (error) {
+                    console.error("Fout bij het bijwerken van document:", error);
+                }
+            }
+            counter++;
+        });
+    }
+}
+
+// Controleer continu elke 5 seconden (of een andere gewenste interval)
+setInterval(cleanupActivePrints, 5000);
+
+// Luister naar berichten
 pubnub.addListener({
     message: async (event) => {
         const message = event.message;
@@ -95,32 +125,6 @@ pubnub.addListener({
         if (message === 'on' && !isPrinting.value) {
             // Als er geen print bezig is, start een nieuwe print
             isPrinting.value = true;
-
-            // Verwijder alle oude actieve prints (indien ze bestaan)
-            const activePrints = items.value.filter(item => item.status === 'Active');
-
-            // Als er meer dan 1 actieve print is, verwijder dan de overtollige
-            if (activePrints.length > 1) {
-                for (let i = 1; i < activePrints.length; i++) {
-                    const activePrint = activePrints[i];
-
-                    // Verwijder de overtollige actieve print uit de items array
-                    const itemIndex = items.value.indexOf(activePrint);
-                    if (itemIndex > -1) {
-                        items.value.splice(itemIndex, 1); // Verwijder de print uit de lijst
-                    }
-
-                    // Verwijder de overtollige actieve print ook uit Firestore
-                    try {
-                        const docRef = doc(db, "prints", activePrint.id);
-                        await updateDoc(docRef, {
-                            status: 'Inactive', // Werk de status bij naar 'Inactive'
-                        });
-                    } catch (error) {
-                        console.error("Error bij het bijwerken van document:", error);
-                    }
-                }
-            }
 
             // Stel een standaardprinter in
             const defaultPrinter = "Printer1"; // Standaardprinter voor 'on' berichten
@@ -145,7 +149,7 @@ pubnub.addListener({
                 // Sla het ID van de nieuwe print op om het later bij te werken
                 currentPrintId.value = docRef.id;
             } catch (error) {
-                console.error("Error bij het toevoegen van document:", error);
+                console.error("Fout bij het toevoegen van document:", error);
             }
         } else if (message === 'off' && isPrinting.value && currentPrintId.value) {
             // Als het 'off' bericht wordt ontvangen, beëindig de print en werk het juiste item bij
@@ -172,7 +176,7 @@ pubnub.addListener({
                     });
                     console.log('Document geüpdatet met ID:', lastItem.id);
                 } catch (error) {
-                    console.error("Error bij het updaten van document:", error);
+                    console.error("Fout bij het updaten van document:", error);
                 }
 
                 // Reset de vlag om een nieuwe print te starten
